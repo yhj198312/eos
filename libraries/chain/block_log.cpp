@@ -104,6 +104,16 @@ namespace eosio { namespace chain {
       }
    };
 
+   struct log_entry_v4 : signed_block {
+      // In version 4 of the irreversible blocks log format, these log entries consists of the following in order:
+      //    1. An uint32_t size for number of bytes from the start of this log entry to the start of the next log entry.
+      //    2. An uint8_t indicating the compression status for the serialization of the pruned_block following this.
+      //    3. The serialization of a signed_block representation of the block for the entry including padding.
+      packed_transaction::cf_compression_type compression = packed_transaction::cf_compression_type::none;
+      uint32_t size = 0; // the size of the log entry
+   };
+
+
    namespace {
 
       template <typename T>
@@ -117,15 +127,6 @@ namespace eosio { namespace chain {
       constexpr int offset_to_block_start(uint32_t version) { 
          return version >= pruned_transaction_version ? sizeof(uint32_t) + 1 : 0;
       }
-
-      struct log_entry_v4 : signed_block {
-         // In version 4 of the irreversible blocks log format, these log entries consists of the following in order:
-         //    1. An uint32_t size for number of bytes from the start of this log entry to the start of the next log entry.
-         //    2. An uint8_t indicating the compression status for the serialization of the pruned_block following this.
-         //    3. The serialization of a signed_block representation of the block for the entry including padding.
-         packed_transaction::cf_compression_type compression = packed_transaction::cf_compression_type::none;
-         uint32_t size = 0; // the size of the log entry
-      };
 
       template <typename Stream>
       void unpack(Stream& ds, log_entry_v4& entry){
